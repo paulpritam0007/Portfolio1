@@ -173,12 +173,14 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            align-items: flex-start;
+            align-items: center;
             justify-content: center;
             padding: 0 8vw;
+            text-align: center;
         }
 
         .hero-eyebrow {
+            margin-top: 3rem;
             font-size: 0.7rem;
             letter-spacing: 0.4em;
             text-transform: uppercase;
@@ -191,7 +193,7 @@
 
         .hero-name {
             font-family: 'Bebas Neue', sans-serif;
-            font-size: clamp(5rem, 16vw, 14rem);
+            font-size: clamp(3.5rem, 10vw, 8rem);
             line-height: 0.88;
             letter-spacing: -0.01em;
             text-transform: uppercase;
@@ -207,7 +209,7 @@
         .hero-name .name-line:nth-child(2) {
             color: transparent;
             -webkit-text-stroke: 1px var(--c-white);
-            padding-left: 4vw;
+            padding-left: 0;
         }
         .hero-name .name-glitch {
             position: absolute;
@@ -232,33 +234,53 @@
         }
 
         .hero-scroll-hint {
-            position: absolute;
-            bottom: 3rem;
-            left: 8vw;
+        position: static;
+        bottom: 3rem;
+        left: 0;
+        right: 0;
+        width: 100%;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 0.6rem;
+        font-size: 0.65rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: var(--c-dim);
+        opacity: 0;
+        transform: translateY(20px);
+        animation: fadeUp 1s ease 1.4s forwards;
+        cursor: pointer;
+        text-decoration: none;
+        }
+    
+        .hero-scroll-hint:hover { color: var(--c-accent); }
+        .hero-scroll-hint:hover .scroll-arrow { border-color: var(--c-accent); }
+        .hero-scroll-hint:hover .scroll-arrow::after { border-color: var(--c-accent); }
+
+        .scroll-arrow {
+            width: 36px; height: 36px;
+            border: 1px solid rgba(240,236,230,0.3);
+            border-radius: 50%;
             display: flex;
             align-items: center;
-            gap: 1rem;
-            font-size: 0.65rem;
-            letter-spacing: 0.3em;
-            text-transform: uppercase;
-            color: var(--c-dim);
-            opacity: 0;
-            animation: fadeUp 1s ease 1.4s forwards;
-        }
-        .scroll-line {
-            width: 60px;
-            height: 1px;
-            background: var(--c-dim);
+            justify-content: center;
             position: relative;
-            overflow: hidden;
+            animation: bounce-arrow 2s ease-in-out infinite;
+            transition: border-color 0.3s;
         }
-        .scroll-line::after {
+        .scroll-arrow::after {
             content: '';
-            position: absolute;
-            inset: 0;
-            background: var(--c-accent);
-            transform: translateX(-100%);
-            animation: slide-right 2s ease-in-out infinite;
+            width: 9px; height: 9px;
+            border-right: 1.5px solid var(--c-dim);
+            border-bottom: 1.5px solid var(--c-dim);
+            transform: rotate(45deg) translate(-2px, -2px);
+            transition: border-color 0.3s;
+        }
+
+        @keyframes bounce-arrow {
+            0%, 100% { transform: translateY(0); }
+            50%       { transform: translateY(6px); }
         }
 
         /* ─── PANEL 2 — STACK ─── */
@@ -333,56 +355,126 @@
             color: var(--c-accent);
         }
 
-        /* ─── PANEL 3 — VENTURES ─── */
+        /* ─── PANEL 3 — VENTURES (SOLAR ORBITAL) ─── */
         #panel-ventures {
             flex-direction: column;
-            align-items: flex-end;
-            padding: 0 8vw;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4vw;
+            overflow: hidden;
         }
-        .ventures-wrap {
-            max-width: 800px;
-            width: 100%;
+        #panel-ventures .section-label {
+            align-self: center;
+            margin-bottom: 2rem;
         }
-        .venture-card {
-            padding: 3rem 3rem 3rem 0;
-            border-bottom: 1px solid rgba(255,255,255,0.07);
-            display: grid;
-            grid-template-columns: 1fr auto;
-            gap: 2rem;
-            align-items: start;
-            opacity: 0;
-            transform: translateX(40px);
-            transition: opacity 0.7s ease, transform 0.7s ease;
-            cursor: default;
+        .solar-system {
+            position: relative;
+            width: min(520px, 90vw);
+            height: min(520px, 90vw);
+            flex-shrink: 0;
         }
-        .venture-card:first-child { border-top: 1px solid rgba(255,255,255,0.07); }
-        .venture-card.in-view { opacity: 1; transform: translateX(0); }
-        .venture-card:hover { background: rgba(255,255,255,0.02); }
-        .venture-title {
-            font-family: 'Bebas Neue', sans-serif;
-            font-size: clamp(2.5rem, 6vw, 5rem);
-            letter-spacing: 0.02em;
-            line-height: 1;
-            transition: color 0.3s;
+        /* Sun — Pritam as the center star */
+        .solar-sun {
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            width: 64px; height: 64px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 35% 35%, #fff9c4, #ffe76e 45%, #ffaa00 75%, #ff6600);
+            box-shadow: 0 0 0 6px rgba(255,231,110,0.12),
+                        0 0 30px rgba(255,170,0,0.6),
+                        0 0 70px rgba(255,231,110,0.25),
+                        0 0 120px rgba(255,100,0,0.15);
+            animation: sun-pulse 4s ease-in-out infinite;
+            z-index: 10;
+            display: flex;
+            align-items: center;
+            justify-content: center;
         }
-        .venture-card:hover .venture-title { color: var(--c-accent3); }
-        .venture-sub {
-            font-size: 0.72rem;
-            color: var(--c-dim);
-            margin-top: 0.8rem;
-            max-width: 420px;
-            line-height: 1.7;
-        }
-        .venture-status {
-            font-size: 0.6rem;
+        .solar-sun-label {
+            position: absolute;
+            top: calc(50% + 38px);
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.55rem;
             letter-spacing: 0.2em;
             text-transform: uppercase;
-            padding: 0.3rem 0.8rem;
-            border: 1px solid;
+            color: rgba(255,231,110,0.7);
             white-space: nowrap;
         }
-        .status-active { border-color: var(--c-accent); color: var(--c-accent); }
-        .status-building { border-color: var(--c-accent3); color: var(--c-accent3); }
+        @keyframes sun-pulse {
+            0%,100% { box-shadow: 0 0 0 6px rgba(255,231,110,0.12), 0 0 30px rgba(255,170,0,0.6), 0 0 70px rgba(255,231,110,0.25); }
+            50%      { box-shadow: 0 0 0 10px rgba(255,231,110,0.18), 0 0 50px rgba(255,170,0,0.8), 0 0 100px rgba(255,231,110,0.35); }
+        }
+        /* Orbit rings */
+        .orbit-ring {
+            position: absolute;
+            top: 50%; left: 50%;
+            border-radius: 50%;
+            border: 1px solid rgba(255,255,255,0.07);
+            transform: translate(-50%, -50%);
+            animation: orbit-rotate linear infinite;
+            pointer-events: none; /* <-- Add this line */
+        }
+        /* Each planet wrapper orbits */
+        .planet-wrapper {
+            position: absolute;
+            top: 50%; left: 50%;
+            width: 0; height: 0;
+            transform-origin: 0 0;
+        }
+        .planet {
+            position: absolute;
+            border-radius: 50%;
+            transform: translate(-50%, -50%);
+            cursor: pointer;
+            transition: filter 0.3s, transform 0.3s;
+        }
+        .planet:hover { filter: brightness(1.4); transform: translate(-50%, -50%) scale(1.25); }
+        /* Planet label card — appears on hover */
+        .planet-card {
+            position: absolute;
+            background: rgba(3,1,10,0.92);
+            border: 1px solid rgba(255,255,255,0.1);
+            padding: 0.9rem 1.1rem;
+            min-width: 190px;
+            pointer-events: none;
+            opacity: 0;
+            transform: translateY(6px);
+            transition: opacity 0.25s, transform 0.25s;
+            z-index: 50;
+        }
+        .planet:hover .planet-card { opacity: 1; transform: translateY(0); }
+        .planet-card-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.3rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.3rem;
+        }
+        .planet-card-desc {
+            font-size: 0.62rem;
+            color: var(--c-dim);
+            line-height: 1.6;
+        }
+        .planet-card-status {
+            margin-top: 0.5rem;
+            font-size: 0.55rem;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+        }
+        /* Asteroid belt dots */
+        .asteroid {
+            position: absolute;
+            top: 50%; left: 50%;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform-origin: 0 0;
+            animation: orbit-rotate linear infinite;
+        }
+        @keyframes orbit-rotate {
+            from { transform: translate(-50%,-50%) rotate(0deg); }
+            to   { transform: translate(-50%,-50%) rotate(360deg); }
+        }
 
         /* ─── PANEL 4 — STATS TICKER ─── */
         #panel-stats {
@@ -442,7 +534,7 @@
         }
         .connect-big {
             font-family: 'Bebas Neue', sans-serif;
-            font-size: clamp(5rem, 18vw, 18rem);
+            font-size: clamp(5rem, 13vw, 13rem);
             line-height: 0.85;
             letter-spacing: -0.02em;
             opacity: 0;
@@ -509,6 +601,11 @@
         @keyframes fadeUp {
             to { opacity: 1; transform: translateY(0); }
         }
+
+        @keyframes fadeUpCenter {
+            to { opacity: 1; transform: translate(-50%, 0); }
+        }
+
         @keyframes slide-right {
             0%   { transform: translateX(-100%); }
             50%  { transform: translateX(0); }
@@ -603,7 +700,7 @@
 
     <!-- HERO -->
     <section class="panel" id="panel-hero">
-        <div class="hero-eyebrow">[ Software Development Engineer ]</div>
+        <div class="hero-eyebrow">Welcome Back!</div>
         <div class="hero-name">
             <span class="name-line">Pritam</span>
             <span class="name-line">
@@ -612,15 +709,15 @@
             </span>
         </div>
         <p class="hero-tagline">Architecting systems. Building scalable web applications. Connecting ideas to infrastructure.</p>
-        <div class="hero-scroll-hint">
-            <div class="scroll-line"></div>
-            Scroll to explore
-        </div>
+        <a class="hero-scroll-hint" href="#panel-stack" onclick="document.getElementById('panel-stack').scrollIntoView({behavior:'smooth'});return false;">
+            <div class="scroll-arrow"></div>
+            Dare to know more?
+        </a>
     </section>
 
     <!-- STACK -->
     <section class="panel" id="panel-stack">
-        <div class="section-label">// Core Stack</div>
+        <div class="section-label">Core Stack</div>
         <div class="stack-grid">
             <div class="stack-item">
                 <div class="stack-num">01</div>
@@ -628,20 +725,38 @@
                 <div class="stack-desc">Backend engineering, REST APIs, and microservice architecture. Crafting logic that scales under pressure.</div>
                 <div class="stack-tag">Backend</div>
             </div>
-            <div class="stack-item" style="transition-delay:0.1s">
+            <div class="stack-item">
                 <div class="stack-num">02</div>
+                <div class="stack-name">Core Java</div>
+                <div class="stack-desc">Usually Use for Android App development. Strong fundamentals on OOPs. Creating innovated logics and implement to Softwares</div>
+                <div class="stack-tag">Backend</div>
+            </div>
+            <div class="stack-item" style="transition-delay:0.1s">
+                <div class="stack-num">03</div>
+                <div class="stack-name">Semantic HTML</div>
+                <div class="stack-desc">HTML elements to structure your content based on each element's meaning, not its appearance</div>
+                <div class="stack-tag">Frontend</div>
+            </div>
+            <div class="stack-item" style="transition-delay:0.1s">
+                <div class="stack-num">04</div>
+                <div class="stack-name">Tailwind CSS</div>
+                <div class="stack-desc">easy to manage layouts using utility classes that control container sizes, box sizing, and positioning</div>
+                <div class="stack-tag">Frontend</div>
+            </div>
+            <div class="stack-item" style="transition-delay:0.1s">
+                <div class="stack-num">05</div>
                 <div class="stack-name">JavaScript</div>
                 <div class="stack-desc">From raw DOM manipulation to modern frameworks. Building interfaces that feel alive and responsive.</div>
                 <div class="stack-tag">Frontend</div>
             </div>
             <div class="stack-item" style="transition-delay:0.2s">
-                <div class="stack-num">03</div>
+                <div class="stack-num">06</div>
                 <div class="stack-name">AWS Cloud</div>
                 <div class="stack-desc">EC2, Lambda, S3, RDS — designing resilient, cloud-native infrastructure for production workloads.</div>
                 <div class="stack-tag">Infrastructure</div>
             </div>
             <div class="stack-item" style="transition-delay:0.3s">
-                <div class="stack-num">04</div>
+                <div class="stack-num">07</div>
                 <div class="stack-name">DSA & Systems</div>
                 <div class="stack-desc">Deep focus on algorithms, data structures, and systems design. Thinking in complexity and trade-offs.</div>
                 <div class="stack-tag">Fundamentals</div>
@@ -651,22 +766,53 @@
 
     <!-- VENTURES -->
     <section class="panel" id="panel-ventures">
-        <div class="section-label" style="align-self:flex-start">// Ventures</div>
-        <div class="ventures-wrap">
-            <div class="venture-card">
-                <div>
-                    <div class="venture-title">Scentra</div>
-                    <div class="venture-sub">Founder. Building at the intersection of fragrance, culture, and digital commerce. Redefining how scent is discovered and purchased.</div>
-                </div>
-                <div class="venture-status status-active">Active</div>
+        <div class="section-label">Ventures</div>
+        <div class="solar-system" id="solar-system">
+
+            <!-- Sun -->
+            <div class="solar-sun">
+                <div class="solar-sun-label">Projects</div>
             </div>
-            <div class="venture-card" style="transition-delay:0.15s">
-                <div>
-                    <div class="venture-title">StoneMarg</div>
-                    <div class="venture-sub">Exploring digital asset security and legacy planning. A product for the intersection of blockchain, estate, and long-term wealth management.</div>
+
+            <!-- Orbit ring 1 — Scentra -->
+            <div class="orbit-ring" style="width:220px;height:220px;animation-duration:18s;"></div>
+            <!-- Planet 1 wrapper (rotates) -->
+            <div class="planet-wrapper" id="pw1" style="animation:orbit-rotate 18s linear infinite";>
+                <div class="planet" style="
+                    width:42px;height:42px;
+                    left:110px;top:0;
+                    background:radial-gradient(circle at 35% 30%, #b2ffd8, #7effb2 50%, #00c96e);
+                    box-shadow:0 0 12px rgba(126,255,178,0.6),0 0 28px rgba(126,255,178,0.2);
+                ">
+                    <div class="planet-card" style="left:52px;top:-10px;">
+                        <div class="planet-card-title" style="color:#7effb2;">Scentra</div>
+                        <div class="planet-card-desc">Co-founder. Fragrance meets digital commerce. Redefining how scent is discovered.</div>
+                        <div class="planet-card-status" style="color:#7effb2;">● Active</div>
+                    </div>
                 </div>
-                <div class="venture-status status-building">Building</div>
             </div>
+
+            <!-- Orbit ring 2 — StoneMarg -->
+            <div class="orbit-ring" style="width:370px;height:370px;animation-duration:30s;animation-direction:reverse;"></div>
+            <!-- Planet 2 wrapper -->
+            <div class="planet-wrapper" id="pw2" style="animation:orbit-rotate 30s linear infinite reverse;">
+                <div class="planet" style="
+                    width:34px;height:34px;
+                    left:185px;top:0;
+                    background:radial-gradient(circle at 35% 30%, #fff0a0, #ffe76e 50%, #d4a800);
+                    box-shadow:0 0 12px rgba(255,231,110,0.6),0 0 28px rgba(255,231,110,0.2);
+                ">
+                    <div class="planet-card" style="left:44px;top:-10px;">
+                        <div class="planet-card-title" style="color:#ffe76e;">StoneMarg</div>
+                        <div class="planet-card-desc">Digital asset security & legacy planning. Blockchain meets estate management.</div>
+                        <div class="planet-card-status" style="color:#ffe76e;">◐ Building</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Asteroid belt — decorative dots on middle ring -->
+            <div class="orbit-ring" style="width:295px;height:295px;border-style:dashed;border-color:rgba(255,255,255,0.04);animation-duration:60s;"></div>
+
         </div>
     </section>
 
@@ -675,13 +821,13 @@
         <div class="ticker-row">
             <div class="ticker-track">
                 <!-- duplicated for seamless loop -->
-                <div class="ticker-item"><span class="ticker-val green">5+</span><span class="ticker-key">Years Engineering</span><div class="ticker-sep"></div></div>
-                <div class="ticker-item"><span class="ticker-val pink">AWS</span><span class="ticker-key">Certified Cloud</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val green">5+</span><span class="ticker-key">Projects Made</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val pink">AWS</span><span class="ticker-key">Amazon Certified Cloud</span><div class="ticker-sep"></div></div>
                 <div class="ticker-item"><span class="ticker-val yellow">2</span><span class="ticker-key">Ventures Founded</span><div class="ticker-sep"></div></div>
                 <div class="ticker-item"><span class="ticker-val green">100k+</span><span class="ticker-key">Lines Shipped</span><div class="ticker-sep"></div></div>
                 <div class="ticker-item"><span class="ticker-val pink">Flask</span><span class="ticker-key">Primary Framework</span><div class="ticker-sep"></div></div>
-                <div class="ticker-item"><span class="ticker-val green">5+</span><span class="ticker-key">Years Engineering</span><div class="ticker-sep"></div></div>
-                <div class="ticker-item"><span class="ticker-val pink">AWS</span><span class="ticker-key">Certified Cloud</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val green">5+</span><span class="ticker-key">Projects Made</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val pink">AWS</span><span class="ticker-key">Amazon Certified Cloud</span><div class="ticker-sep"></div></div>
                 <div class="ticker-item"><span class="ticker-val yellow">2</span><span class="ticker-key">Ventures Founded</span><div class="ticker-sep"></div></div>
                 <div class="ticker-item"><span class="ticker-val green">100k+</span><span class="ticker-key">Lines Shipped</span><div class="ticker-sep"></div></div>
                 <div class="ticker-item"><span class="ticker-val pink">Flask</span><span class="ticker-key">Primary Framework</span><div class="ticker-sep"></div></div>
@@ -692,12 +838,12 @@
                 <div class="ticker-item"><span class="ticker-val yellow">DSA</span><span class="ticker-key">Deep Focus</span><div class="ticker-sep"></div></div>
                 <div class="ticker-item"><span class="ticker-val green">∞</span><span class="ticker-key">Problems Solved</span><div class="ticker-sep"></div></div>
                 <div class="ticker-item"><span class="ticker-val pink">Python</span><span class="ticker-key">Core Language</span><div class="ticker-sep"></div></div>
-                <div class="ticker-item"><span class="ticker-val yellow">Systems</span><span class="ticker-key">Design Enthusiast</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val yellow">Java</span><span class="ticker-key">Core knowledge</span><div class="ticker-sep"></div></div>
                 <div class="ticker-item"><span class="ticker-val green">0</span><span class="ticker-key">Downtime Tolerance</span><div class="ticker-sep"></div></div>
                 <div class="ticker-item"><span class="ticker-val yellow">DSA</span><span class="ticker-key">Deep Focus</span><div class="ticker-sep"></div></div>
                 <div class="ticker-item"><span class="ticker-val green">∞</span><span class="ticker-key">Problems Solved</span><div class="ticker-sep"></div></div>
                 <div class="ticker-item"><span class="ticker-val pink">Python</span><span class="ticker-key">Core Language</span><div class="ticker-sep"></div></div>
-                <div class="ticker-item"><span class="ticker-val yellow">Systems</span><span class="ticker-key">Design Enthusiast</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val yellow">Java</span><span class="ticker-key">Core knowledge</span><div class="ticker-sep"></div></div>
                 <div class="ticker-item"><span class="ticker-val green">0</span><span class="ticker-key">Downtime Tolerance</span><div class="ticker-sep"></div></div>
             </div>
         </div>
@@ -708,16 +854,16 @@
         <div class="connect-big">Let's<br>Build.</div>
         <div class="connect-sub">Open to collaborations, ideas, and interesting problems</div>
         <div class="connect-links">
-            <a href="mailto:pritam@example.com" class="connect-link" data-mobile-link>Email</a>
-            <a href="https://linkedin.com" class="connect-link" data-mobile-link target="_blank" rel="noopener">LinkedIn</a>
-            <a href="https://github.com" class="connect-link" data-mobile-link target="_blank" rel="noopener">GitHub</a>
-            <a href="https://twitter.com" class="connect-link" data-mobile-link target="_blank" rel="noopener">Twitter</a>
+            <a href="paul.pritam0007@gmail.com" class="connect-link" data-mobile-link>Email</a>
+            <a href="https://linkedin.com/in/pritampaulin" class="connect-link" data-mobile-link target="_blank" rel="noopener">LinkedIn</a>
+            <a href="https://github.com/paulpritam0007" class="connect-link" data-mobile-link target="_blank" rel="noopener">GitHub</a>
+            <a href="https://instagram.com/iamleo.code" class="connect-link" data-mobile-link target="_blank" rel="noopener">Instagram</a>
         </div>
     </section>
 
 </div>
 
-<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script data-cfasync="false" src="/cdn-cgi/scripts/5c5dd728/cloudflare-static/email-decode.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
 <script>
 /* ───────────────────────────── THREE.JS TUNNEL ───────────────────────────── */
 const scene    = new THREE.Scene();
@@ -860,7 +1006,6 @@ const progressBar = document.getElementById('progress-bar');
 const navDots     = document.querySelectorAll('.nav-dot');
 const panels      = document.querySelectorAll('.panel');
 const stackItems  = document.querySelectorAll('.stack-item');
-const ventureCards = document.querySelectorAll('.venture-card');
 const connectBig  = document.querySelector('.connect-big');
 const connectSub  = document.querySelector('.connect-sub');
 const connectLinks = document.querySelector('.connect-links');
@@ -891,10 +1036,6 @@ function onScroll() {
         const r = el.getBoundingClientRect();
         if (r.top < innerHeight * 0.85) el.classList.add('in-view');
     });
-    ventureCards.forEach(el => {
-        const r = el.getBoundingClientRect();
-        if (r.top < innerHeight * 0.85) el.classList.add('in-view');
-    });
     [connectBig, connectSub, connectLinks].forEach(el => {
         if (!el) return;
         if (el.getBoundingClientRect().top < innerHeight * 0.85) el.classList.add('in-view');
@@ -912,7 +1053,14 @@ navDots.forEach(dot => {
 });
 
 /* ───────────────────────────── THUNDER CURSOR (DESKTOP ONLY) ───────────────────────────── */
-const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+/* ───────────────────────────── DEVICE DETECTION ───────────────────────────── */
+// Use multiple signals for robust touch detection
+const isTouchDevice = (
+    window.matchMedia('(hover: none)').matches ||
+    window.matchMedia('(pointer: coarse)').matches ||
+    ('ontouchstart' in window) ||
+    (navigator.maxTouchPoints > 0)
+);
 
 const cursor     = document.getElementById('cursor');
 const flash      = document.getElementById('flash');
@@ -1056,24 +1204,30 @@ if (isTouchDevice) {
     const blackout = document.getElementById('mobile-blackout');
     blackout.style.display = 'block';
 
+    // ONLY attach to real external/mailto links marked with data-mobile-link
+    // Nav dots, stack items, venture cards are intentionally excluded
     document.querySelectorAll('a[data-mobile-link]').forEach(link => {
         link.addEventListener('click', e => {
+            const href = link.getAttribute('href') || '';
+
+            // Skip empty, hash-only, or javascript: hrefs — no blackout for those
+            if (!href || href === '#' || href.startsWith('javascript:')) return;
+
             e.preventDefault();
-            const href   = link.getAttribute('href');
             const target = link.getAttribute('target') || '_self';
 
-            // Fade to black
+            // Kill any in-progress fade
             blackout.classList.remove('fade-out');
+            void blackout.offsetWidth; // force reflow
             blackout.classList.add('fade-in');
 
             setTimeout(() => {
-                // Navigate
                 if (target === '_blank') {
-                    window.open(href, '_blank', 'noopener');
+                    window.open(href, '_blank', 'noopener,noreferrer');
                 } else {
                     window.location.href = href;
                 }
-                // Fade back out after short pause
+                // Fade back after nav (only matters if same-tab returns)
                 setTimeout(() => {
                     blackout.classList.remove('fade-in');
                     blackout.classList.add('fade-out');
