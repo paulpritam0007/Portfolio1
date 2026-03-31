@@ -369,11 +369,11 @@
         }
         .solar-system {
             position: relative;
-            width: min(520px, 90vw);
-            height: min(520px, 90vw);
+            width: 400px; /* Lock the base size so scaling works predictably */
+            height: 400px;
             flex-shrink: 0;
         }
-        /* Sun — Pritam as the center star */
+        /* Sun — Projects as the center star */
         .solar-sun {
             position: absolute;
             top: 50%; left: 50%;
@@ -640,10 +640,34 @@
         }
 
         @media (max-width: 600px) {
-            .panel { padding: 4rem 1.5rem; }
-            .stack-grid { grid-template-columns: 1fr; }
-            .venture-card { grid-template-columns: 1fr; }
+        .panel { padding: 4rem 1.5rem; }
+        .stack-grid { grid-template-columns: 1fr; }
+        
+        /* Zooms out the entire planetary system to fit the screen */
+        .solar-system {
+            transform: scale(0.75); 
         }
+        
+        /* Centers the pop-up cards under the planet so they don't bleed off the edge */
+        .planet-card {
+            left: 50% !important;
+            top: 55px !important; /* Pushes the card below the planet */
+            transform: translate(-50%, 10px) !important;
+            min-width: 170px;
+        }
+        
+        /* Mobile hover pop-up animation */
+        .planet:hover .planet-card {
+            transform: translate(-50%, 0) !important;
+        }
+    }
+
+    /* Extra zoom-out for very narrow phones (like iPhone SE) */
+    @media (max-width: 380px) {
+        .solar-system {
+            transform: scale(0.62);
+        }
+    }
     </style>
 </head>
 <body>
