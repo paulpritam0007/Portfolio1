@@ -27,10 +27,11 @@
             overflow-x: hidden;
         }
 
-        /* ─── CUSTOM CURSOR — THUNDER BOLT ─── */
-        body { cursor: none; }
+        /* ─── CUSTOM CURSOR — THUNDER BOLT (desktop/mouse only) ─── */
 
+        /* Default: cursor visible (mobile default) */
         #cursor {
+            display: none; /* hidden by default; shown only on hover-capable devices */
             position: fixed;
             width: 32px; height: 40px;
             pointer-events: none;
@@ -46,10 +47,16 @@
             filter: drop-shadow(0 0 12px #ffe76e) drop-shadow(0 0 30px #ff6ef7) drop-shadow(0 0 50px #7effb2);
         }
 
-        /* ─── MOBILE: hide custom cursor, restore default ─── */
-        @media (hover: none) and (pointer: coarse) {
-            body { cursor: auto; }
-            #cursor, #cursor-ring, #lightning-canvas, #flash { display: none !important; }
+        /* Only on real pointer/hover devices: hide system cursor, show bolt */
+        @media (hover: hover) and (pointer: fine) {
+            body { cursor: none; }
+            #cursor { display: block; }
+        }
+
+        /* Explicitly ensure touch devices NEVER show the custom cursor or overlays */
+        @media (hover: none), (pointer: coarse) {
+            body { cursor: auto !important; }
+            #cursor, #lightning-canvas, #flash { display: none !important; }
         }
 
         /* ─── MOBILE BLACKOUT OVERLAY ─── */
