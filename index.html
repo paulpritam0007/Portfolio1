@@ -1,0 +1,884 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pritam Paul — Portfolio</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Space+Mono:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --c-bg: #03010a;
+            --c-accent: #7effb2;
+            --c-accent2: #ff6ef7;
+            --c-accent3: #ffe76e;
+            --c-white: #f0ece6;
+            --c-dim: rgba(240,236,230,0.35);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            background: var(--c-bg);
+            color: var(--c-white);
+            font-family: 'Space Mono', monospace;
+            overflow-x: hidden;
+        }
+
+        /* ─── CUSTOM CURSOR ─── */
+        body { cursor: none; }
+        #cursor {
+            position: fixed;
+            width: 12px; height: 12px;
+            background: var(--c-accent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9999;
+            mix-blend-mode: exclusion;
+            transition: transform 0.15s ease, width 0.2s, height 0.2s;
+            transform: translate(-50%, -50%);
+        }
+        #cursor-ring {
+            position: fixed;
+            width: 40px; height: 40px;
+            border: 1px solid var(--c-accent);
+            border-radius: 50%;
+            pointer-events: none;
+            z-index: 9998;
+            mix-blend-mode: exclusion;
+            transition: transform 0.08s linear, width 0.3s, height 0.3s, opacity 0.3s;
+            transform: translate(-50%, -50%);
+            opacity: 0.5;
+        }
+
+        /* ─── CANVAS (Three.js tunnel) ─── */
+        canvas {
+            position: fixed;
+            inset: 0;
+            width: 100vw !important;
+            height: 100vh !important;
+            z-index: 0;
+        }
+
+        /* ─── PROGRESS BAR ─── */
+        #progress-bar {
+            position: fixed;
+            top: 0; left: 0;
+            height: 2px;
+            width: 0%;
+            background: linear-gradient(90deg, var(--c-accent), var(--c-accent2));
+            z-index: 200;
+            transition: width 0.1s linear;
+        }
+
+        /* ─── SECTION SYSTEM ─── */
+        .scroll-container {
+            position: relative;
+            z-index: 10;
+        }
+
+        .panel {
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 6rem 4rem;
+            overflow: hidden;
+        }
+
+        /* ─── NAV ─── */
+        nav {
+            position: fixed;
+            top: 2rem; right: 2rem;
+            z-index: 100;
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            align-items: flex-end;
+        }
+        .nav-dot {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            cursor: pointer;
+        }
+        .nav-dot span {
+            font-size: 0.6rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            opacity: 0;
+            transform: translateX(8px);
+            transition: opacity 0.3s, transform 0.3s;
+            color: var(--c-dim);
+        }
+        .nav-dot:hover span { opacity: 1; transform: translateX(0); }
+        .dot {
+            width: 6px; height: 6px;
+            border-radius: 50%;
+            border: 1px solid var(--c-dim);
+            transition: background 0.3s, border-color 0.3s, transform 0.3s;
+        }
+        .nav-dot.active .dot {
+            background: var(--c-accent);
+            border-color: var(--c-accent);
+            transform: scale(1.6);
+        }
+
+        /* ─── PANEL 1 — HERO ─── */
+        #panel-hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            justify-content: center;
+            padding: 0 8vw;
+        }
+
+        .hero-eyebrow {
+            font-size: 0.7rem;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: var(--c-accent);
+            margin-bottom: 1.5rem;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 1s ease 0.5s forwards;
+        }
+
+        .hero-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(5rem, 16vw, 14rem);
+            line-height: 0.88;
+            letter-spacing: -0.01em;
+            text-transform: uppercase;
+            opacity: 0;
+            transform: translateY(40px);
+            animation: fadeUp 1s ease 0.7s forwards;
+            position: relative;
+        }
+        .hero-name .name-line {
+            display: block;
+            position: relative;
+        }
+        .hero-name .name-line:nth-child(2) {
+            color: transparent;
+            -webkit-text-stroke: 1px var(--c-white);
+            padding-left: 4vw;
+        }
+        .hero-name .name-glitch {
+            position: absolute;
+            top: 0; left: 0;
+            width: 100%;
+            color: var(--c-accent2);
+            -webkit-text-stroke: 0;
+            opacity: 0;
+            clip-path: inset(0 100% 0 0);
+            animation: glitch-reveal 8s infinite 3s;
+        }
+
+        .hero-tagline {
+            margin-top: 2.5rem;
+            font-size: clamp(0.8rem, 1.5vw, 1rem);
+            color: var(--c-dim);
+            max-width: 380px;
+            line-height: 1.8;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: fadeUp 1s ease 1s forwards;
+        }
+
+        .hero-scroll-hint {
+            position: absolute;
+            bottom: 3rem;
+            left: 8vw;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            font-size: 0.65rem;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            color: var(--c-dim);
+            opacity: 0;
+            animation: fadeUp 1s ease 1.4s forwards;
+        }
+        .scroll-line {
+            width: 60px;
+            height: 1px;
+            background: var(--c-dim);
+            position: relative;
+            overflow: hidden;
+        }
+        .scroll-line::after {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: var(--c-accent);
+            transform: translateX(-100%);
+            animation: slide-right 2s ease-in-out infinite;
+        }
+
+        /* ─── PANEL 2 — STACK ─── */
+        #panel-stack {
+            flex-direction: column;
+            align-items: flex-start;
+            padding: 0 8vw;
+        }
+        .section-label {
+            font-size: 0.65rem;
+            letter-spacing: 0.4em;
+            text-transform: uppercase;
+            color: var(--c-accent);
+            margin-bottom: 3rem;
+        }
+        .stack-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 1px;
+            width: 100%;
+            max-width: 1100px;
+            border: 1px solid rgba(255,255,255,0.07);
+        }
+        .stack-item {
+            padding: 2.5rem;
+            border: 1px solid rgba(255,255,255,0.07);
+            position: relative;
+            overflow: hidden;
+            opacity: 0;
+            transform: translateY(30px);
+            transition: opacity 0.6s ease, transform 0.6s ease, background 0.3s;
+        }
+        .stack-item::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, rgba(126,255,178,0.04), transparent);
+            opacity: 0;
+            transition: opacity 0.4s;
+        }
+        .stack-item:hover::before { opacity: 1; }
+        .stack-item:hover { border-color: rgba(126,255,178,0.2); }
+        .stack-item.in-view { opacity: 1; transform: translateY(0); }
+        .stack-num {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 4rem;
+            color: rgba(255,255,255,0.05);
+            line-height: 1;
+            margin-bottom: 1rem;
+            transition: color 0.3s;
+        }
+        .stack-item:hover .stack-num { color: rgba(126,255,178,0.15); }
+        .stack-name {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 1.8rem;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+        .stack-desc {
+            font-size: 0.72rem;
+            color: var(--c-dim);
+            line-height: 1.7;
+        }
+        .stack-tag {
+            margin-top: 1.2rem;
+            display: inline-block;
+            font-size: 0.6rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            padding: 0.25rem 0.6rem;
+            border: 1px solid rgba(126,255,178,0.25);
+            color: var(--c-accent);
+        }
+
+        /* ─── PANEL 3 — VENTURES ─── */
+        #panel-ventures {
+            flex-direction: column;
+            align-items: flex-end;
+            padding: 0 8vw;
+        }
+        .ventures-wrap {
+            max-width: 800px;
+            width: 100%;
+        }
+        .venture-card {
+            padding: 3rem 3rem 3rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            display: grid;
+            grid-template-columns: 1fr auto;
+            gap: 2rem;
+            align-items: start;
+            opacity: 0;
+            transform: translateX(40px);
+            transition: opacity 0.7s ease, transform 0.7s ease;
+            cursor: default;
+        }
+        .venture-card:first-child { border-top: 1px solid rgba(255,255,255,0.07); }
+        .venture-card.in-view { opacity: 1; transform: translateX(0); }
+        .venture-card:hover { background: rgba(255,255,255,0.02); }
+        .venture-title {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(2.5rem, 6vw, 5rem);
+            letter-spacing: 0.02em;
+            line-height: 1;
+            transition: color 0.3s;
+        }
+        .venture-card:hover .venture-title { color: var(--c-accent3); }
+        .venture-sub {
+            font-size: 0.72rem;
+            color: var(--c-dim);
+            margin-top: 0.8rem;
+            max-width: 420px;
+            line-height: 1.7;
+        }
+        .venture-status {
+            font-size: 0.6rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            padding: 0.3rem 0.8rem;
+            border: 1px solid;
+            white-space: nowrap;
+        }
+        .status-active { border-color: var(--c-accent); color: var(--c-accent); }
+        .status-building { border-color: var(--c-accent3); color: var(--c-accent3); }
+
+        /* ─── PANEL 4 — STATS TICKER ─── */
+        #panel-stats {
+            padding: 0;
+            overflow: hidden;
+            flex-direction: column;
+            gap: 0;
+        }
+        .ticker-row {
+            width: 100%;
+            padding: 2rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.07);
+            overflow: hidden;
+            display: flex;
+        }
+        .ticker-row:first-child { border-top: 1px solid rgba(255,255,255,0.07); }
+        .ticker-track {
+            display: flex;
+            gap: 4rem;
+            animation: ticker 20s linear infinite;
+            white-space: nowrap;
+        }
+        .ticker-row:nth-child(even) .ticker-track { animation-direction: reverse; }
+        .ticker-item {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+            flex-shrink: 0;
+        }
+        .ticker-val {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: 2.2rem;
+            letter-spacing: 0.05em;
+        }
+        .ticker-val.green { color: var(--c-accent); }
+        .ticker-val.pink { color: var(--c-accent2); }
+        .ticker-val.yellow { color: var(--c-accent3); }
+        .ticker-key {
+            font-size: 0.65rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--c-dim);
+        }
+        .ticker-sep {
+            width: 4px; height: 4px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.15);
+        }
+
+        /* ─── PANEL 5 — CONNECT ─── */
+        #panel-connect {
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 0 4rem;
+        }
+        .connect-big {
+            font-family: 'Bebas Neue', sans-serif;
+            font-size: clamp(5rem, 18vw, 18rem);
+            line-height: 0.85;
+            letter-spacing: -0.02em;
+            opacity: 0;
+            transform: scale(0.92);
+            transition: opacity 0.8s ease, transform 0.8s ease;
+            background: linear-gradient(135deg, var(--c-white) 40%, rgba(240,236,230,0.2));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+        .connect-big.in-view { opacity: 1; transform: scale(1); }
+        .connect-sub {
+            margin-top: 2.5rem;
+            font-size: 0.75rem;
+            letter-spacing: 0.25em;
+            text-transform: uppercase;
+            color: var(--c-dim);
+            opacity: 0;
+            transition: opacity 0.8s ease 0.3s;
+        }
+        .connect-sub.in-view { opacity: 1; }
+        .connect-links {
+            margin-top: 3rem;
+            display: flex;
+            gap: 2.5rem;
+            flex-wrap: wrap;
+            justify-content: center;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.8s ease 0.5s, transform 0.8s ease 0.5s;
+        }
+        .connect-links.in-view { opacity: 1; transform: translateY(0); }
+        .connect-link {
+            font-size: 0.7rem;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            color: var(--c-dim);
+            text-decoration: none;
+            padding-bottom: 0.3rem;
+            border-bottom: 1px solid rgba(255,255,255,0.15);
+            transition: color 0.3s, border-color 0.3s;
+        }
+        .connect-link:hover { color: var(--c-accent); border-color: var(--c-accent); }
+
+        /* ─── HORIZONTAL RULE DECORATION ─── */
+        .h-rule {
+            position: absolute;
+            background: rgba(255,255,255,0.04);
+        }
+
+        /* ─── FLOATING COORDINATES ─── */
+        #coords {
+            position: fixed;
+            bottom: 2rem;
+            left: 2rem;
+            font-size: 0.6rem;
+            letter-spacing: 0.15em;
+            color: var(--c-dim);
+            z-index: 100;
+            font-variant-numeric: tabular-nums;
+        }
+
+        /* ─── KEYFRAMES ─── */
+        @keyframes fadeUp {
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slide-right {
+            0%   { transform: translateX(-100%); }
+            50%  { transform: translateX(0); }
+            100% { transform: translateX(100%); }
+        }
+        @keyframes glitch-reveal {
+            0%,89%  { clip-path: inset(0 100% 0 0); opacity: 0; }
+            90%     { clip-path: inset(0 0% 0 0); opacity: 0.6; transform: translateX(-4px); }
+            92%     { clip-path: inset(0 0% 0 0); opacity: 0;   transform: translateX(6px); }
+            94%     { clip-path: inset(0 0% 0 0); opacity: 0.5; transform: translateX(0); }
+            96%,100%{ clip-path: inset(0 100% 0 0); opacity: 0; }
+        }
+        @keyframes ticker {
+            0%   { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* ─── SCANLINE OVERLAY ─── */
+        body::after {
+            content: '';
+            position: fixed;
+            inset: 0;
+            pointer-events: none;
+            background: repeating-linear-gradient(
+                0deg,
+                transparent,
+                transparent 2px,
+                rgba(0,0,0,0.04) 2px,
+                rgba(0,0,0,0.04) 4px
+            );
+            z-index: 500;
+        }
+
+        @media (max-width: 600px) {
+            .panel { padding: 4rem 1.5rem; }
+            .stack-grid { grid-template-columns: 1fr; }
+            .venture-card { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+
+<!-- Cursor -->
+<div id="cursor"></div>
+<div id="cursor-ring"></div>
+
+<!-- Progress -->
+<div id="progress-bar"></div>
+
+<!-- Coords -->
+<div id="coords">37.7749° N / 122.4194° W</div>
+
+<!-- Three.js canvas -->
+<canvas id="bg"></canvas>
+
+<!-- NAV DOTS -->
+<nav>
+    <div class="nav-dot active" data-target="panel-hero">   <span>Intro</span><div class="dot"></div></div>
+    <div class="nav-dot"        data-target="panel-stack">  <span>Stack</span><div class="dot"></div></div>
+    <div class="nav-dot"        data-target="panel-ventures"><span>Ventures</span><div class="dot"></div></div>
+    <div class="nav-dot"        data-target="panel-stats">  <span>Stats</span><div class="dot"></div></div>
+    <div class="nav-dot"        data-target="panel-connect"><span>Connect</span><div class="dot"></div></div>
+</nav>
+
+<!-- SCROLL CONTENT -->
+<div class="scroll-container">
+
+    <!-- HERO -->
+    <section class="panel" id="panel-hero">
+        <div class="hero-eyebrow">[ Software Development Engineer ]</div>
+        <div class="hero-name">
+            <span class="name-line">Pritam</span>
+            <span class="name-line">
+                Paul
+                <span class="name-glitch">Paul</span>
+            </span>
+        </div>
+        <p class="hero-tagline">Architecting systems. Building scalable web applications. Connecting ideas to infrastructure.</p>
+        <div class="hero-scroll-hint">
+            <div class="scroll-line"></div>
+            Scroll to explore
+        </div>
+    </section>
+
+    <!-- STACK -->
+    <section class="panel" id="panel-stack">
+        <div class="section-label">// Core Stack</div>
+        <div class="stack-grid">
+            <div class="stack-item">
+                <div class="stack-num">01</div>
+                <div class="stack-name">Python & Flask</div>
+                <div class="stack-desc">Backend engineering, REST APIs, and microservice architecture. Crafting logic that scales under pressure.</div>
+                <div class="stack-tag">Backend</div>
+            </div>
+            <div class="stack-item" style="transition-delay:0.1s">
+                <div class="stack-num">02</div>
+                <div class="stack-name">JavaScript</div>
+                <div class="stack-desc">From raw DOM manipulation to modern frameworks. Building interfaces that feel alive and responsive.</div>
+                <div class="stack-tag">Frontend</div>
+            </div>
+            <div class="stack-item" style="transition-delay:0.2s">
+                <div class="stack-num">03</div>
+                <div class="stack-name">AWS Cloud</div>
+                <div class="stack-desc">EC2, Lambda, S3, RDS — designing resilient, cloud-native infrastructure for production workloads.</div>
+                <div class="stack-tag">Infrastructure</div>
+            </div>
+            <div class="stack-item" style="transition-delay:0.3s">
+                <div class="stack-num">04</div>
+                <div class="stack-name">DSA & Systems</div>
+                <div class="stack-desc">Deep focus on algorithms, data structures, and systems design. Thinking in complexity and trade-offs.</div>
+                <div class="stack-tag">Fundamentals</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- VENTURES -->
+    <section class="panel" id="panel-ventures">
+        <div class="section-label" style="align-self:flex-start">// Ventures</div>
+        <div class="ventures-wrap">
+            <div class="venture-card">
+                <div>
+                    <div class="venture-title">Scentra</div>
+                    <div class="venture-sub">Founder. Building at the intersection of fragrance, culture, and digital commerce. Redefining how scent is discovered and purchased.</div>
+                </div>
+                <div class="venture-status status-active">Active</div>
+            </div>
+            <div class="venture-card" style="transition-delay:0.15s">
+                <div>
+                    <div class="venture-title">StoneMarg</div>
+                    <div class="venture-sub">Exploring digital asset security and legacy planning. A product for the intersection of blockchain, estate, and long-term wealth management.</div>
+                </div>
+                <div class="venture-status status-building">Building</div>
+            </div>
+        </div>
+    </section>
+
+    <!-- STATS TICKER -->
+    <section class="panel" id="panel-stats">
+        <div class="ticker-row">
+            <div class="ticker-track">
+                <!-- duplicated for seamless loop -->
+                <div class="ticker-item"><span class="ticker-val green">5+</span><span class="ticker-key">Years Engineering</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val pink">AWS</span><span class="ticker-key">Certified Cloud</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val yellow">2</span><span class="ticker-key">Ventures Founded</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val green">100k+</span><span class="ticker-key">Lines Shipped</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val pink">Flask</span><span class="ticker-key">Primary Framework</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val green">5+</span><span class="ticker-key">Years Engineering</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val pink">AWS</span><span class="ticker-key">Certified Cloud</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val yellow">2</span><span class="ticker-key">Ventures Founded</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val green">100k+</span><span class="ticker-key">Lines Shipped</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val pink">Flask</span><span class="ticker-key">Primary Framework</span><div class="ticker-sep"></div></div>
+            </div>
+        </div>
+        <div class="ticker-row">
+            <div class="ticker-track">
+                <div class="ticker-item"><span class="ticker-val yellow">DSA</span><span class="ticker-key">Deep Focus</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val green">∞</span><span class="ticker-key">Problems Solved</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val pink">Python</span><span class="ticker-key">Core Language</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val yellow">Systems</span><span class="ticker-key">Design Enthusiast</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val green">0</span><span class="ticker-key">Downtime Tolerance</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val yellow">DSA</span><span class="ticker-key">Deep Focus</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val green">∞</span><span class="ticker-key">Problems Solved</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val pink">Python</span><span class="ticker-key">Core Language</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val yellow">Systems</span><span class="ticker-key">Design Enthusiast</span><div class="ticker-sep"></div></div>
+                <div class="ticker-item"><span class="ticker-val green">0</span><span class="ticker-key">Downtime Tolerance</span><div class="ticker-sep"></div></div>
+            </div>
+        </div>
+    </section>
+
+    <!-- CONNECT -->
+    <section class="panel" id="panel-connect">
+        <div class="connect-big">Let's<br>Build.</div>
+        <div class="connect-sub">Open to collaborations, ideas, and interesting problems</div>
+        <div class="connect-links">
+            <a href="mailto:pritam@example.com" class="connect-link">Email</a>
+            <a href="#" class="connect-link">LinkedIn</a>
+            <a href="#" class="connect-link">GitHub</a>
+            <a href="#" class="connect-link">Twitter</a>
+        </div>
+    </section>
+
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+<script>
+/* ───────────────────────────── THREE.JS TUNNEL ───────────────────────────── */
+const scene    = new THREE.Scene();
+scene.background = new THREE.Color(0x03010a);
+scene.fog = new THREE.FogExp2(0x03010a, 0.018);
+
+const camera = new THREE.PerspectiveCamera(70, innerWidth/innerHeight, 0.1, 1000);
+
+const renderer = new THREE.WebGLRenderer({
+    canvas: document.querySelector('#bg'),
+    antialias: true
+});
+renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+renderer.setSize(innerWidth, innerHeight);
+
+/* ─── Path ─── */
+const pts = [];
+for (let i = 0; i < 200; i++) {
+    pts.push(new THREE.Vector3(
+        Math.sin(i * 0.08) * 18 + Math.sin(i * 0.03) * 8,
+        Math.cos(i * 0.12) * 18 + Math.cos(i * 0.05) * 6,
+        i * -8
+    ));
+}
+const path = new THREE.CatmullRomCurve3(pts);
+
+/* ─── Main wireframe tube ─── */
+const tubeGeo = new THREE.TubeGeometry(path, 500, 5, 10, false);
+const tubeMat = new THREE.MeshBasicMaterial({
+    color: 0x7effb2,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.08
+});
+const tube = new THREE.Mesh(tubeGeo, tubeMat);
+scene.add(tube);
+
+/* ─── Inner glow tube ─── */
+const innerGeo = new THREE.TubeGeometry(path, 500, 2.5, 8, false);
+const innerMat = new THREE.MeshBasicMaterial({
+    color: 0xff6ef7,
+    wireframe: true,
+    transparent: true,
+    opacity: 0.06
+});
+scene.add(new THREE.Mesh(innerGeo, innerMat));
+
+/* ─── Particle field ─── */
+const particleCount = 4000;
+const positions = new Float32Array(particleCount * 3);
+const colors    = new Float32Array(particleCount * 3);
+const palette   = [
+    [0.49, 1.0, 0.70],  // green
+    [1.0,  0.43, 0.97],  // pink
+    [1.0,  0.91, 0.43],  // yellow
+    [0.95, 0.92, 0.90],  // white
+];
+for (let i = 0; i < particleCount; i++) {
+    const t = i / particleCount;
+    const p = path.getPointAt(t);
+    const angle  = Math.random() * Math.PI * 2;
+    const radius = 2 + Math.random() * 20;
+    positions[i*3]   = p.x + Math.cos(angle) * radius;
+    positions[i*3+1] = p.y + Math.sin(angle) * radius;
+    positions[i*3+2] = p.z + (Math.random() - 0.5) * 5;
+    const c = palette[Math.floor(Math.random() * palette.length)];
+    colors[i*3]   = c[0];
+    colors[i*3+1] = c[1];
+    colors[i*3+2] = c[2];
+}
+const pGeo = new THREE.BufferGeometry();
+pGeo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+pGeo.setAttribute('color',    new THREE.BufferAttribute(colors, 3));
+const pMat = new THREE.PointsMaterial({
+    size: 0.25, vertexColors: true,
+    transparent: true, opacity: 0.6, sizeAttenuation: true
+});
+scene.add(new THREE.Points(pGeo, pMat));
+
+/* ─── Ring slices along tunnel ─── */
+for (let i = 0; i < 30; i++) {
+    const t = i / 30;
+    const ringPt = path.getPointAt(t);
+    const ringGeo = new THREE.RingGeometry(3.5, 4.5, 32);
+    const ringMat = new THREE.MeshBasicMaterial({
+        color: i % 3 === 0 ? 0x7effb2 : i % 3 === 1 ? 0xff6ef7 : 0xffe76e,
+        side: THREE.DoubleSide,
+        transparent: true,
+        opacity: 0.03 + Math.random() * 0.04
+    });
+    const ring = new THREE.Mesh(ringGeo, ringMat);
+    ring.position.copy(ringPt);
+    ring.lookAt(t < 0.99 ? path.getPointAt(Math.min(t + 0.01, 0.99)) : ringPt);
+    scene.add(ring);
+}
+
+/* ─── Scroll-driven camera ─── */
+let scrollY = 0;
+let currentT = 0.001;
+let targetT  = 0.001;
+
+window.addEventListener('scroll', () => {
+    scrollY = window.scrollY;
+    const maxScroll = Math.max(1, document.documentElement.scrollHeight - innerHeight);
+    targetT = Math.max(0.001, Math.min(scrollY / maxScroll * 0.95, 0.95));
+});
+
+/* ─── Animate ─── */
+let clock = new THREE.Clock();
+function animate() {
+    requestAnimationFrame(animate);
+    const elapsed = clock.getElapsedTime();
+
+    // Smooth camera lerp
+    currentT += (targetT - currentT) * 0.05;
+    const lookT = Math.min(currentT + 0.015, 0.99);
+
+    camera.position.copy(path.getPointAt(currentT));
+    camera.lookAt(path.getPointAt(lookT));
+
+    // Subtle breath
+    camera.position.x += Math.sin(elapsed * 0.4) * 0.15;
+    camera.position.y += Math.cos(elapsed * 0.3) * 0.1;
+
+    // Slow tube rotation
+    tube.rotation.z = elapsed * 0.05;
+
+    renderer.render(scene, camera);
+}
+animate();
+
+window.addEventListener('resize', () => {
+    camera.aspect = innerWidth / innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(innerWidth, innerHeight);
+});
+
+/* ───────────────────────────── SCROLL LOGIC ───────────────────────────── */
+const progressBar = document.getElementById('progress-bar');
+const navDots     = document.querySelectorAll('.nav-dot');
+const panels      = document.querySelectorAll('.panel');
+const stackItems  = document.querySelectorAll('.stack-item');
+const ventureCards = document.querySelectorAll('.venture-card');
+const connectBig  = document.querySelector('.connect-big');
+const connectSub  = document.querySelector('.connect-sub');
+const connectLinks = document.querySelector('.connect-links');
+
+function onScroll() {
+    const scrollTop = window.scrollY;
+    const docH = document.documentElement.scrollHeight - innerHeight;
+
+    // Progress bar
+    progressBar.style.width = (scrollTop / docH * 100) + '%';
+
+    // Coordinates animation
+    document.getElementById('coords').textContent =
+        (37.7749 + scrollTop * 0.00003).toFixed(4) + '° N / ' +
+        (122.4194 - scrollTop * 0.00002).toFixed(4) + '° W';
+
+    // Active nav dot
+    let closestIdx = 0;
+    let closestDist = Infinity;
+    panels.forEach((p, i) => {
+        const dist = Math.abs(p.getBoundingClientRect().top);
+        if (dist < closestDist) { closestDist = dist; closestIdx = i; }
+    });
+    navDots.forEach((d, i) => d.classList.toggle('active', i === closestIdx));
+
+    // Reveal animations
+    stackItems.forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.top < innerHeight * 0.85) el.classList.add('in-view');
+    });
+    ventureCards.forEach(el => {
+        const r = el.getBoundingClientRect();
+        if (r.top < innerHeight * 0.85) el.classList.add('in-view');
+    });
+    [connectBig, connectSub, connectLinks].forEach(el => {
+        if (!el) return;
+        if (el.getBoundingClientRect().top < innerHeight * 0.85) el.classList.add('in-view');
+    });
+}
+
+window.addEventListener('scroll', onScroll);
+onScroll();
+
+// Nav dot click
+navDots.forEach(dot => {
+    dot.addEventListener('click', () => {
+        document.getElementById(dot.dataset.target).scrollIntoView({ behavior: 'smooth' });
+    });
+});
+
+/* ───────────────────────────── CUSTOM CURSOR ───────────────────────────── */
+const cursor     = document.getElementById('cursor');
+const cursorRing = document.getElementById('cursor-ring');
+let mouseX = 0, mouseY = 0;
+let ringX  = 0, ringY  = 0;
+
+document.addEventListener('mousemove', e => {
+    mouseX = e.clientX; mouseY = e.clientY;
+    cursor.style.left = mouseX + 'px';
+    cursor.style.top  = mouseY + 'px';
+});
+
+(function animateCursor() {
+    ringX += (mouseX - ringX) * 0.12;
+    ringY += (mouseY - ringY) * 0.12;
+    cursorRing.style.left = ringX + 'px';
+    cursorRing.style.top  = ringY + 'px';
+    requestAnimationFrame(animateCursor);
+})();
+
+document.querySelectorAll('a, .nav-dot, .stack-item, .venture-card').forEach(el => {
+    el.addEventListener('mouseenter', () => {
+        cursor.style.transform = 'translate(-50%,-50%) scale(2.5)';
+        cursorRing.style.width  = '70px';
+        cursorRing.style.height = '70px';
+        cursorRing.style.opacity = '1';
+    });
+    el.addEventListener('mouseleave', () => {
+        cursor.style.transform = 'translate(-50%,-50%) scale(1)';
+        cursorRing.style.width  = '40px';
+        cursorRing.style.height = '40px';
+        cursorRing.style.opacity = '0.5';
+    });
+});
+</script>
+</body>
+</html>
