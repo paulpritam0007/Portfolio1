@@ -46,29 +46,25 @@
             filter: drop-shadow(0 0 12px #ffe76e) drop-shadow(0 0 30px #ff6ef7) drop-shadow(0 0 50px #7effb2);
         }
 
-        /* electric halo ring */
-        #cursor-ring {
-            position: fixed;
-            width: 48px; height: 48px;
-            border: 1.5px solid rgba(255,231,110,0.5);
-            border-radius: 50%;
-            pointer-events: none;
-            z-index: 9998;
-            transform: translate(-50%, -50%);
-            transition: width 0.25s, height 0.25s, opacity 0.25s, border-color 0.25s;
-            opacity: 0.4;
-            animation: pulse-ring 2.5s ease-in-out infinite;
-        }
-        #cursor-ring.hovered {
-            width: 72px; height: 72px;
-            opacity: 0.9;
-            border-color: rgba(255,231,110,0.9);
+        /* ─── MOBILE: hide custom cursor, restore default ─── */
+        @media (hover: none) and (pointer: coarse) {
+            body { cursor: auto; }
+            #cursor, #cursor-ring, #lightning-canvas, #flash { display: none !important; }
         }
 
-        @keyframes pulse-ring {
-            0%,100% { box-shadow: 0 0 0 0 rgba(255,231,110,0); }
-            50%      { box-shadow: 0 0 0 8px rgba(255,231,110,0.08); }
+        /* ─── MOBILE BLACKOUT OVERLAY ─── */
+        #mobile-blackout {
+            display: none;
+            position: fixed;
+            inset: 0;
+            background: #000;
+            z-index: 99999;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.45s cubic-bezier(0.4, 0, 1, 1);
         }
+        #mobile-blackout.fade-in  { opacity: 1; pointer-events: all; }
+        #mobile-blackout.fade-out { opacity: 0; }
 
         /* ─── LIGHTNING CANVAS OVERLAY ─── */
         #lightning-canvas {
@@ -569,7 +565,8 @@
         </defs>
     </svg>
 </div>
-<div id="cursor-ring"></div>
+<!-- Mobile blackout overlay -->
+<div id="mobile-blackout"></div>
 
 <!-- Lightning overlay canvas -->
 <canvas id="lightning-canvas"></canvas>
@@ -704,10 +701,10 @@
         <div class="connect-big">Let's<br>Build.</div>
         <div class="connect-sub">Open to collaborations, ideas, and interesting problems</div>
         <div class="connect-links">
-            <a href="/cdn-cgi/l/email-protection#e393918a97828ea3869b828e938f86cd808c8e" class="connect-link">Email</a>
-            <a href="#" class="connect-link">LinkedIn</a>
-            <a href="#" class="connect-link">GitHub</a>
-            <a href="#" class="connect-link">Twitter</a>
+            <a href="mailto:pritam@example.com" class="connect-link" data-mobile-link>Email</a>
+            <a href="https://linkedin.com" class="connect-link" data-mobile-link target="_blank" rel="noopener">LinkedIn</a>
+            <a href="https://github.com" class="connect-link" data-mobile-link target="_blank" rel="noopener">GitHub</a>
+            <a href="https://twitter.com" class="connect-link" data-mobile-link target="_blank" rel="noopener">Twitter</a>
         </div>
     </section>
 
@@ -907,194 +904,179 @@ navDots.forEach(dot => {
     });
 });
 
-/* ───────────────────────────── THUNDER CURSOR ───────────────────────────── */
+/* ───────────────────────────── THUNDER CURSOR (DESKTOP ONLY) ───────────────────────────── */
+const isTouchDevice = window.matchMedia('(hover: none) and (pointer: coarse)').matches;
+
 const cursor     = document.getElementById('cursor');
-const cursorRing = document.getElementById('cursor-ring');
 const flash      = document.getElementById('flash');
 const lCanvas    = document.getElementById('lightning-canvas');
 const lCtx       = lCanvas.getContext('2d');
 
-lCanvas.width  = innerWidth;
-lCanvas.height = innerHeight;
-window.addEventListener('resize', () => {
+if (!isTouchDevice) {
     lCanvas.width  = innerWidth;
     lCanvas.height = innerHeight;
-});
+    window.addEventListener('resize', () => {
+        lCanvas.width  = innerWidth;
+        lCanvas.height = innerHeight;
+    });
 
-let mouseX = 0, mouseY = 0;
-let ringX  = 0, ringY  = 0;
+    let mouseX = 0, mouseY = 0;
 
-document.addEventListener('mousemove', e => {
-    mouseX = e.clientX;
-    mouseY = e.clientY;
-    cursor.style.left = mouseX + 'px';
-    cursor.style.top  = mouseY + 'px';
-});
+    document.addEventListener('mousemove', e => {
+        mouseX = e.clientX;
+        mouseY = e.clientY;
+        cursor.style.left = mouseX + 'px';
+        cursor.style.top  = mouseY + 'px';
+    });
 
-(function animateCursor() {
-    ringX += (mouseX - ringX) * 0.1;
-    ringY += (mouseY - ringY) * 0.1;
-    cursorRing.style.left = ringX + 'px';
-    cursorRing.style.top  = ringY + 'px';
-    requestAnimationFrame(animateCursor);
-})();
+    /* ─── LIGHTNING ENGINE ─── */
+    function randomBetween(a, b) { return a + Math.random() * (b - a); }
 
-/* ─── LIGHTNING ENGINE ─── */
-function randomBetween(a, b) { return a + Math.random() * (b - a); }
+    function buildBolt(x1, y1, x2, y2, roughness, branches) {
+        const segments = [{ x: x1, y: y1 }];
+        const dx = x2 - x1, dy = y2 - y1;
+        const len = Math.sqrt(dx * dx + dy * dy);
+        const steps = Math.floor(len / 18);
+        const perp = { x: -dy / len, y: dx / len };
+        const extra = [];
+        for (let i = 1; i < steps; i++) {
+            const t = i / steps;
+            const nx = x1 + dx * t + perp.x * randomBetween(-roughness, roughness);
+            const ny = y1 + dy * t + perp.y * randomBetween(-roughness, roughness);
+            segments.push({ x: nx, y: ny });
+            if (branches > 0 && Math.random() < 0.25) {
+                const bLen = randomBetween(40, 120);
+                const bAngle = Math.atan2(dy, dx) + randomBetween(-0.8, 0.8);
+                extra.push(...buildBolt(
+                    nx, ny,
+                    nx + Math.cos(bAngle) * bLen,
+                    ny + Math.sin(bAngle) * bLen,
+                    roughness * 0.6, branches - 1
+                ).map(s => ({ ...s, branch: true })));
+            }
+        }
+        segments.push({ x: x2, y: y2 });
+        return [...segments, ...extra];
+    }
 
-/* Build a jagged lightning path from (x1,y1) to (x2,y2) */
-function buildBolt(x1, y1, x2, y2, roughness, branches) {
-    const segments = [{ x: x1, y: y1 }];
-    const dx = x2 - x1, dy = y2 - y1;
-    const len = Math.sqrt(dx * dx + dy * dy);
-    const steps = Math.floor(len / 18);
-    const perp = { x: -dy / len, y: dx / len };
-    const extra = [];
+    function drawBolt(segments, alpha, width, colorStops) {
+        if (segments.length < 2) return;
+        lCtx.save();
+        lCtx.shadowBlur = 24;
+        lCtx.shadowColor = colorStops[0];
+        lCtx.globalAlpha = alpha * 0.6;
+        lCtx.strokeStyle = colorStops[0];
+        lCtx.lineWidth = width * 3;
+        lCtx.lineCap = 'round';
+        lCtx.lineJoin = 'round';
+        lCtx.beginPath();
+        lCtx.moveTo(segments[0].x, segments[0].y);
+        for (let i = 1; i < segments.length; i++) lCtx.lineTo(segments[i].x, segments[i].y);
+        lCtx.stroke();
+        lCtx.restore();
 
-    for (let i = 1; i < steps; i++) {
-        const t = i / steps;
-        const nx = x1 + dx * t + perp.x * randomBetween(-roughness, roughness);
-        const ny = y1 + dy * t + perp.y * randomBetween(-roughness, roughness);
-        segments.push({ x: nx, y: ny });
+        const grad = lCtx.createLinearGradient(
+            segments[0].x, segments[0].y,
+            segments[segments.length-1].x, segments[segments.length-1].y
+        );
+        colorStops.forEach((c, i) => grad.addColorStop(i / (colorStops.length - 1), c));
+        lCtx.save();
+        lCtx.globalAlpha = alpha;
+        lCtx.strokeStyle = grad;
+        lCtx.lineWidth = width;
+        lCtx.lineCap = 'round';
+        lCtx.lineJoin = 'round';
+        lCtx.beginPath();
+        lCtx.moveTo(segments[0].x, segments[0].y);
+        for (let i = 1; i < segments.length; i++) lCtx.lineTo(segments[i].x, segments[i].y);
+        lCtx.stroke();
+        lCtx.restore();
+    }
 
-        // random branch
-        if (branches > 0 && Math.random() < 0.25) {
-            const bLen = randomBetween(40, 120);
-            const bAngle = Math.atan2(dy, dx) + randomBetween(-0.8, 0.8);
-            extra.push(...buildBolt(
-                nx, ny,
-                nx + Math.cos(bAngle) * bLen,
-                ny + Math.sin(bAngle) * bLen,
-                roughness * 0.6, branches - 1
-            ).map(s => ({ ...s, branch: true })));
+    const strikes = [];
+
+    function spawnLightningStrike(originX, originY) {
+        const W = innerWidth, H = innerHeight;
+        const count = Math.floor(randomBetween(3, 7));
+        const boltDefs = [];
+        for (let i = 0; i < count; i++) {
+            let tx, ty;
+            const edge = Math.floor(Math.random() * 4);
+            if      (edge === 0) { tx = randomBetween(0, W); ty = 0; }
+            else if (edge === 1) { tx = W;                   ty = randomBetween(0, H); }
+            else if (edge === 2) { tx = randomBetween(0, W); ty = H; }
+            else                 { tx = 0;                   ty = randomBetween(0, H); }
+            boltDefs.push({
+                segs: buildBolt(originX, originY, tx, ty, 60, 2),
+                alpha: randomBetween(0.85, 1.0),
+                width: randomBetween(1.5, 3.5),
+                colors: ['#ffffff', '#ffe76e', '#ffaa00', '#ff6ef7']
+            });
+        }
+        strikes.push({ bolts: boltDefs, life: 1.0, decay: randomBetween(0.06, 0.11) });
+    }
+
+    function renderLightning() {
+        requestAnimationFrame(renderLightning);
+        lCtx.clearRect(0, 0, lCanvas.width, lCanvas.height);
+        for (let s = strikes.length - 1; s >= 0; s--) {
+            const strike = strikes[s];
+            if (Math.random() > 0.15) {
+                strike.bolts.forEach(b => {
+                    const liveAlpha = b.alpha * strike.life * (0.7 + Math.random() * 0.3);
+                    drawBolt(b.segs, liveAlpha, b.width * (0.5 + strike.life * 0.5), b.colors);
+                });
+            }
+            strike.life -= strike.decay;
+            if (strike.life <= 0) strikes.splice(s, 1);
         }
     }
-    segments.push({ x: x2, y: y2 });
-    return [...segments, ...extra];
+    renderLightning();
+
+    document.addEventListener('mousedown', e => {
+        cursor.classList.add('pressed');
+        flash.style.opacity = '0.18';
+        setTimeout(() => { flash.style.opacity = '0'; }, 80);
+        spawnLightningStrike(e.clientX, e.clientY);
+        setTimeout(() => spawnLightningStrike(e.clientX, e.clientY), 90);
+    });
+
+    document.addEventListener('mouseup', () => cursor.classList.remove('pressed'));
 }
 
-function drawBolt(segments, alpha, width, colorStops) {
-    if (segments.length < 2) return;
-    // glow pass
-    lCtx.save();
-    lCtx.shadowBlur = 24;
-    lCtx.shadowColor = colorStops[0];
-    lCtx.globalAlpha = alpha * 0.6;
-    lCtx.strokeStyle = colorStops[0];
-    lCtx.lineWidth = width * 3;
-    lCtx.lineCap = 'round';
-    lCtx.lineJoin = 'round';
-    lCtx.beginPath();
-    lCtx.moveTo(segments[0].x, segments[0].y);
-    for (let i = 1; i < segments.length; i++) lCtx.lineTo(segments[i].x, segments[i].y);
-    lCtx.stroke();
-    lCtx.restore();
+/* ───────────────────────────── MOBILE BLACKOUT LINK ANIMATION ───────────────────────────── */
+if (isTouchDevice) {
+    const blackout = document.getElementById('mobile-blackout');
+    blackout.style.display = 'block';
 
-    // core pass
-    const grad = lCtx.createLinearGradient(
-        segments[0].x, segments[0].y,
-        segments[segments.length-1].x, segments[segments.length-1].y
-    );
-    colorStops.forEach((c, i) => grad.addColorStop(i / (colorStops.length - 1), c));
-    lCtx.save();
-    lCtx.globalAlpha = alpha;
-    lCtx.strokeStyle = grad;
-    lCtx.lineWidth = width;
-    lCtx.lineCap = 'round';
-    lCtx.lineJoin = 'round';
-    lCtx.beginPath();
-    lCtx.moveTo(segments[0].x, segments[0].y);
-    for (let i = 1; i < segments.length; i++) lCtx.lineTo(segments[i].x, segments[i].y);
-    lCtx.stroke();
-    lCtx.restore();
-}
+    document.querySelectorAll('a[data-mobile-link]').forEach(link => {
+        link.addEventListener('click', e => {
+            e.preventDefault();
+            const href   = link.getAttribute('href');
+            const target = link.getAttribute('target') || '_self';
 
-/* Active lightning strikes storage */
-const strikes = [];
+            // Fade to black
+            blackout.classList.remove('fade-out');
+            blackout.classList.add('fade-in');
 
-function spawnLightningStrike(originX, originY) {
-    const W = innerWidth, H = innerHeight;
-
-    // Generate 3-6 main bolts radiating from cursor to random screen edges / points
-    const count = Math.floor(randomBetween(3, 7));
-    const boltDefs = [];
-
-    for (let i = 0; i < count; i++) {
-        // Pick a target: weighted toward edges
-        let tx, ty;
-        const edge = Math.floor(Math.random() * 4);
-        if      (edge === 0) { tx = randomBetween(0, W);  ty = 0; }
-        else if (edge === 1) { tx = W;                     ty = randomBetween(0, H); }
-        else if (edge === 2) { tx = randomBetween(0, W);  ty = H; }
-        else                 { tx = 0;                     ty = randomBetween(0, H); }
-
-        boltDefs.push({
-            segs: buildBolt(originX, originY, tx, ty, 60, 2),
-            alpha: randomBetween(0.85, 1.0),
-            width: randomBetween(1.5, 3.5),
-            colors: ['#ffffff', '#ffe76e', '#ffaa00', '#ff6ef7']
+            setTimeout(() => {
+                // Navigate
+                if (target === '_blank') {
+                    window.open(href, '_blank', 'noopener');
+                } else {
+                    window.location.href = href;
+                }
+                // Fade back out after short pause
+                setTimeout(() => {
+                    blackout.classList.remove('fade-in');
+                    blackout.classList.add('fade-out');
+                }, 300);
+            }, 480);
         });
-    }
-
-    strikes.push({
-        bolts: boltDefs,
-        life: 1.0,       // 0..1, fades out
-        decay: randomBetween(0.06, 0.11),
-        flicker: 0,
     });
 }
 
-/* Render loop for lightning overlay */
-let ltFrame = 0;
-function renderLightning() {
-    requestAnimationFrame(renderLightning);
-    lCtx.clearRect(0, 0, lCanvas.width, lCanvas.height);
 
-    for (let s = strikes.length - 1; s >= 0; s--) {
-        const strike = strikes[s];
-
-        // Flicker: randomly skip some frames for electric feel
-        const flick = Math.random() > 0.15;
-
-        if (flick) {
-            strike.bolts.forEach(b => {
-                // Re-jitter slightly each frame
-                const liveAlpha = b.alpha * strike.life * (0.7 + Math.random() * 0.3);
-                drawBolt(b.segs, liveAlpha, b.width * (0.5 + strike.life * 0.5), b.colors);
-            });
-        }
-
-        strike.life -= strike.decay;
-        if (strike.life <= 0) strikes.splice(s, 1);
-    }
-}
-renderLightning();
-
-/* ─── CLICK: trigger thunder ─── */
-document.addEventListener('mousedown', e => {
-    cursor.classList.add('pressed');
-
-    // Screen flash
-    flash.style.opacity = '0.18';
-    setTimeout(() => { flash.style.opacity = '0'; }, 80);
-
-    // Spawn lightning
-    spawnLightningStrike(e.clientX, e.clientY);
-
-    // Spawn a second delayed bolt burst (aftershock)
-    setTimeout(() => spawnLightningStrike(e.clientX, e.clientY), 90);
-});
-
-document.addEventListener('mouseup', () => {
-    cursor.classList.remove('pressed');
-});
-
-/* Keep old hover scale + ring for interactive elements — KEEP BELOW so it overrides */
-document.querySelectorAll('a, .nav-dot, .stack-item, .venture-card').forEach(el => {
-    el.addEventListener('mouseenter', () => cursorRing.classList.add('hovered'));
-    el.addEventListener('mouseleave', () => cursorRing.classList.remove('hovered'));
-    // Suppress — placeholder closing brace handled below
-    const _dummy = null});
 </script>
 </body>
 </html>
